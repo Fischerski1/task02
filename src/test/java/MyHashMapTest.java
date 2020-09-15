@@ -1,5 +1,8 @@
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class MyHashMapTest {
     MyHashMap myHashMap = new MyHashMap();
@@ -15,13 +18,13 @@ class MyHashMapTest {
         myHashMap.put(null, 7);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void getSize() {
         Assert.assertNotNull(myHashMap.getSize());
         Assert.assertTrue(myHashMap.getSize() >= 0);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void put() {
         myHashMap.put(5, 3);
         myHashMap.put(3, 4);
@@ -32,7 +35,7 @@ class MyHashMapTest {
         myHashMap.put(null, 7);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void get() {
         myHashMap.get(null);
         myHashMap.get(0);
@@ -41,12 +44,20 @@ class MyHashMapTest {
         myHashMap.get(5);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void containsKey() {
         myHashMap.containsKey(5);
         myHashMap.containsKey(0);
         myHashMap.containsKey(99);
         myHashMap.containsKey(-25);
         myHashMap.containsKey(null);
+    }
+
+    @Test
+    void remove() {
+        myHashMap.remove(null);
+        myHashMap.remove(5);
+        myHashMap.remove(-2);
+        myHashMap.remove(4);
     }
 }

@@ -3,8 +3,8 @@ public class Main {
         MyHashMap myHashMap = new MyHashMap();
         myHashMap.put(5, 3);
         myHashMap.put(3, 4);
-        myHashMap.put(3, 6);
         System.out.println(myHashMap.toString());
+        myHashMap.put(3, 6);
         System.out.println(myHashMap.toString());
         myHashMap.put(1, 8);
         System.out.println(myHashMap.toString());
@@ -23,5 +23,16 @@ public class Main {
 
         System.out.println(myHashMap.containsKey(5));
         System.out.println(myHashMap.containsKey(null));
+
+        System.out.println(myHashMap);
+        System.out.println(myHashMap.remove(5));
+        System.out.println(myHashMap);
+        System.out.println(myHashMap.remove(null));
+        System.out.println(myHashMap);
+        System.out.println(myHashMap.remove(4));
+        System.out.println(myHashMap);
+        System.out.println(myHashMap.remove(-2));
+
+
     }
 }

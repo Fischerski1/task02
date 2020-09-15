@@ -5,8 +5,8 @@ import java.util.Arrays;
  */
 
 public class MyHashMap {
-    private final int DEFAULT_CAPACITY = 3;
-    private MyList[] table = new MyList[DEFAULT_CAPACITY];
+    private final int DEFAULT_CAPACITY = 16;
+    private MyEntry[] table = new MyEntry[DEFAULT_CAPACITY];
     private int threshold = (int) (table.length * 0.75);
     private int size;
 
@@ -27,21 +27,41 @@ public class MyHashMap {
         return hash & (length - 1);
     }
 
-    private void addEntry(int hash, Object key, Object value, int index) {
-        table[index] = new MyList();
-        table[index].add(new MyEntry(hash, key, value, index));
-        resize();
-        size++;
+    private MyEntry nodeThrough(MyEntry myEntry, Object key) {
+        while (myEntry != null) {
+            if (myEntry.getKey() != null) {
+                if (myEntry.getKey().equals(key) || myEntry.getKey() == key) {
+                    return myEntry;
+                }
+            } else {
+                if (key == null)
+                    return myEntry;
+            }
+            myEntry = myEntry.getNext();
+        }
+        return null;
+    }
+
+    private MyEntry addEntry(Object key, Object value) {
+        return new MyEntry(key, value);
     }
 
     private void putForNullKey(Object value) {
         if (table[0] != null) {
-            table[0].add(new MyEntry(0, null, value, 0));
+            MyEntry myEntry = nodeThrough(table[0], null);
+            if (myEntry != null) {
+                myEntry.setValue(value);
+            } else {
+                MyEntry newMyEntry = addEntry(null, value);
+                newMyEntry.setNext(table[0]);
+                table[0] = newMyEntry;
+                size++;
+            }
         }
         else {
-            addEntry(0, null, value, 0);
+            table[0] = addEntry(null, value);
+            size++;
         }
-        size++;
     }
 
     /**
@@ -51,30 +71,24 @@ public class MyHashMap {
      * @param value value matching a specific key
      */
     public void put(Object key, Object value) {
+        resize();
         if (key != null) {
             int hash = hash(key.hashCode());
             int index = indexFor(hash, table.length - 1);
 
             if (table[index] != null) {
-                boolean isInsert = false;
-                for (int i = 0; i < table[index].getSize(); i++) {
-                    MyEntry entry = (MyEntry) table[index].get(i);
-                    try {
-                        if (entry.getHash() == hash && (entry.getKey() == key || key.equals(entry.getKey()))) {
-                            entry.setValue(value);
-                            isInsert = true;
-                            break;
-                        }
-                    } catch (NullPointerException e) {
-
-                    }
-                }
-                if (!isInsert) {
-                    table[index].add(new MyEntry(hash, key, value, index));
+                MyEntry myEntry = nodeThrough(table[index], key);
+                if (myEntry != null) {
+                    myEntry.setValue(value);
+                } else {
+                    MyEntry newMyEntry = addEntry(key, value);
+                    newMyEntry.setNext(table[index]);
+                    table[index] = newMyEntry;
                     size++;
                 }
             } else {
-                addEntry(hash, key, value, index);
+                table[index] = addEntry(key, value);
+                size++;
             }
         } else {
             putForNullKey(value);
@@ -87,26 +101,16 @@ public class MyHashMap {
      * @return entry matching the key; null if no entry is matching the key
      */
     public MyEntry get(Object key) {
-        int index = 0;
-        try {
+        MyEntry myEntry;
+        if (key == null) {
+            myEntry = nodeThrough(table[0], key);
+        } else {
             int hash = hash(key.hashCode());
-            index = indexFor(hash, table.length);
-        } catch (NullPointerException e) {
-
+            int index = indexFor(hash, table.length - 1);
+            myEntry = nodeThrough(table[index], key);
         }
-
-        MyList list = table[index];
-        try {
-            for (int i = 0; i < list.getSize(); i++) {
-                MyEntry entry = (MyEntry) list.get(i);
-                if (entry != null && entry.getKey() == key) {
-                    return entry;
-                    // System.out.println("element w key #" + key + " " + entry.toString());
-                    // break;
-                }
-            }
-        } catch (NullPointerException e) {
-
+        if (myEntry != null) {
+            return myEntry;
         }
         return null;
     }
@@ -120,32 +124,99 @@ public class MyHashMap {
         return get(key) != null;
     }
 
-    private void transfer(MyList[] newTable) {
-        for (MyList list : table) {
-            if (list != null) {
-                for (int i = 0; i < list.getSize(); i++) {
-                    MyEntry entry = (MyEntry) list.get(i);
-                    try {
-                        int hash = hash(entry.getKey().hashCode());
-                        int index = indexFor(hash, newTable.length);
-                        newTable[index].add(entry);
-                    } catch (NullPointerException e) {
-
-                    }
-                }
+    private void transfer(MyEntry entry, MyEntry[] newTable) {
+        while (entry != null) {
+            int index = 0;
+            if (entry.getKey() != null) {
+                int hash = hash(entry.getKey().hashCode());
+                index = indexFor(hash, table.length - 1);
             }
+            if (newTable[index] != null) {
+                MyEntry newEntry = addEntry(entry.getKey(), entry.getValue());
+                newEntry.setNext(newTable[index]);
+                newTable[index] = newEntry;
+            } else {
+                newTable[index] = addEntry(entry.getKey(), entry.getValue());
+            }
+            entry = entry.getNext();
         }
         table = newTable;
     }
 
     private void resize() {
         if (size >= threshold) {
-            MyList[] newTable = new MyList[table.length * 2];
-            for (int i=0; i < newTable.length; i++) {
-                newTable[i] = new MyList();
+            MyEntry[] newTable = new MyEntry[table.length * 2];
+            for (MyEntry entry : table) {
+                if (entry != null) {
+                    transfer(entry, newTable);
+                }
             }
-            transfer(newTable);
         }
+    }
+
+    /**
+     * Removes an entry with a specific key.
+     * @param key unique entry identifier
+     * @return true if entry was removed, false otherwise
+     */
+    public boolean remove(Object key) {
+        MyEntry result = removeMyEntry(key);
+        return result != null ? true : false;
+    }
+
+    private MyEntry removeMyEntry(Object key) {
+        int index = 0;
+        if (key != null) {
+            int hash = hash(key.hashCode());
+            index = indexFor(hash, table.length - 1);
+        }
+        MyEntry myEntry = table[index];
+        MyEntry result = null;
+
+        if (myEntry != null) {
+            if (key != null) {
+                if (myEntry.getKey().equals(key) || myEntry.getKey() == key) {
+                    result = myEntry;
+                    table[index] = myEntry.getNext();
+                    size--;
+                    return result;
+                }
+                while (myEntry.getNext() != null) {
+                    if (myEntry.getNext().getKey().equals(key) || myEntry.getNext().getKey() == key) {
+                        break;
+                    }
+                    myEntry = myEntry.getNext();
+                }
+                if (myEntry.getNext() != null) {
+                    MyEntry myNewEntry = myEntry.getNext().getNext();
+                    myEntry.setNext(myNewEntry);
+                    result = myEntry;
+                    size--;
+                    return result;
+                }
+            } else {
+                if (myEntry.getKey() == null) {
+                    table[index] = myEntry.getNext();
+                    size--;
+                    return myEntry;
+                } else {
+                    while (myEntry.getNext() != null) {
+                        if (myEntry.getNext().getKey() == null) {
+                            break;
+                        }
+                        myEntry = myEntry.getNext();
+                    }
+                    if (myEntry.getNext() != null) {
+                        MyEntry myNewEntry = myEntry.getNext().getNext();
+                        myEntry.setNext(myNewEntry);
+                        result = myEntry;
+                        size--;
+                        return result;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     @Override

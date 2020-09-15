@@ -1,16 +1,17 @@
 import java.util.Objects;
 
+/**
+ * MyEntry implementation.
+ */
+
 public class MyEntry {
-    private final int hash;
     private Object key;
     private Object value;
-    private int next;
+    private MyEntry next;
 
-    public MyEntry(int hash, Object key, Object value, int next) {
-        this.hash = hash;
+    public MyEntry(Object key, Object value) {
         this.key = key;
         this.value = value;
-        this.next = next;
     }
 
     public Object getKey() {
@@ -19,6 +20,14 @@ public class MyEntry {
 
     public Object getValue() {
         return value;
+    }
+
+    public MyEntry getNext() {
+        return next;
+    }
+
+    public void setNext(MyEntry next) {
+        this.next = next;
     }
 
     public void setKey(Object key) {
@@ -31,10 +40,10 @@ public class MyEntry {
         return oldValue;
     }
 
-    public int getHash() {
-        return hash;
-    }
-
+    /**
+     * Returns entry hashcode.
+     * @return int value - entry hashcode
+     */
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -44,6 +53,10 @@ public class MyEntry {
         return result;
     }
 
+    /**
+     * Checks if MyEntry objects are equal.
+     * @return true if objects are equal, false otherwise
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -55,8 +68,10 @@ public class MyEntry {
 
     @Override
     public String toString() {
-        return "{K=" + key +
-                ", V=" + value +
-                '}';
+        return "MyEntry{" +
+                "K=" + key +
+                ",V=" + value +
+                ",N=" + next +
+                "} ";
     }
 }
